@@ -1,0 +1,5 @@
+cron:
+- description: "daily snapshots"
+  target: autosnapshot
+  url: /cron
+  schedule: every day 00:00

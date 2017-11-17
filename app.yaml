@@ -1,0 +1,9 @@
+runtime: go
+api_version: go1
+
+service: autosnapshot
+
+handlers:
+  - url: /cron
+    script: _go_app
+    login: admin
