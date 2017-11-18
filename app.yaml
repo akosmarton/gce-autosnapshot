@@ -1,9 +1,14 @@
 runtime: go
 api_version: go1
-
 service: autosnapshot
-
+instance_class: B1
+basic_scaling:
+  max_instances: 1
 handlers:
+  - url: /_ah/start
+    script: _go_app
+  - url: /_ah/stop
+    script: _go_app
   - url: /cron
     script: _go_app
     login: admin

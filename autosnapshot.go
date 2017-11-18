@@ -20,8 +20,8 @@ const (
 	prefix = "autosnapshot"
 )
 
-type Disk struct {
-	Id      uint64
+type disk struct {
+	ID      uint64
 	Name    string
 	Status  string
 	Zone    string
@@ -30,6 +30,8 @@ type Disk struct {
 
 func init() {
 	http.HandleFunc("/cron", cronHandler)
+	http.HandleFunc("/_ah/start", startHandler)
+	http.HandleFunc("/_ah/stop", stopHandler)
 }
 
 func cronHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,24 +61,24 @@ func cronHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	disks := make(map[uint64]*Disk)
+	disks := make(map[uint64]*disk)
 
 	for z, v := range dal.Items {
 		for _, v2 := range v.Disks {
 			if kf, ok := v2.Labels[label]; ok {
 				zone := strings.Split(z, "/")[1]
-				disks[v2.Id] = new(Disk)
-				disks[v2.Id].Id = v2.Id
+				disks[v2.Id] = new(disk)
+				disks[v2.Id].ID = v2.Id
 				disks[v2.Id].Name = v2.Name
 				disks[v2.Id].Status = v2.Status
 				disks[v2.Id].Zone = zone
 				disks[v2.Id].KeepFor, _ = strconv.Atoi(kf)
 				if disks[v2.Id].Status == "READY" {
 					n := fmt.Sprintf("%s-%d-%d", prefix, time.Now().UTC().Unix(), v2.Id)
-					if _, err := disksService.CreateSnapshot(project, zone, v2.Name, &compute.Snapshot{
+					if _, err2 := disksService.CreateSnapshot(project, zone, v2.Name, &compute.Snapshot{
 						Name: n,
-					}).Do(); err != nil {
-						log.Errorf(ctx, err.Error())
+					}).Do(); err2 != nil {
+						log.Errorf(ctx, err2.Error())
 					} else {
 						log.Infof(ctx, "Snapshot was created: %s (%s/%s)", n, zone, v2.Name)
 					}
@@ -106,4 +108,10 @@ func cronHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func startHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func stopHandler(w http.ResponseWriter, r *http.Request) {
 }
