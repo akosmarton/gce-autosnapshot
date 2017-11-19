@@ -62,6 +62,7 @@ func cronHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	disks := make(map[uint64]*disk)
+	ts := time.Now().UTC().Unix()
 
 	for z, v := range dal.Items {
 		for _, v2 := range v.Disks {
@@ -74,7 +75,7 @@ func cronHandler(w http.ResponseWriter, r *http.Request) {
 				disks[v2.Id].Zone = zone
 				disks[v2.Id].KeepFor, _ = strconv.Atoi(kf)
 				if disks[v2.Id].Status == "READY" {
-					n := fmt.Sprintf("%s-%d-%d", prefix, time.Now().UTC().Unix(), v2.Id)
+					n := fmt.Sprintf("%s-%d-%d", prefix, ts, v2.Id)
 					if _, err2 := disksService.CreateSnapshot(project, zone, v2.Name, &compute.Snapshot{
 						Name: n,
 					}).Do(); err2 != nil {
@@ -102,7 +103,7 @@ func cronHandler(w http.ResponseWriter, r *http.Request) {
 					if _, err := snapshotsService.Delete(project, v.Name).Do(); err != nil {
 						log.Errorf(ctx, err.Error())
 					} else {
-						log.Infof(ctx, "Snapshot was deleted: %s (%s/%s) after %d days", v.Name, disks[id].Zone, disks[id].Name, disks[id].KeepFor)
+						log.Infof(ctx, "Snapshot was deleted: %s (%s/%s) after %d day(s)", v.Name, disks[id].Zone, disks[id].Name, disks[id].KeepFor)
 					}
 				}
 			}
